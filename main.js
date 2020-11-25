@@ -1,28 +1,22 @@
-const Discord = require('discord.js');
-const {prefix, token} = require('./config.json') 
-const client = new Discord.Client();
-
-const prefix = 'plz ';
-
-//---------configuations---------
 const fs = require('fs');
+const Discord = require('discord.js');
+const { prefix, token } = require('./config.json');
+const data = require('./player.json');
+
+const client = new Discord.Client();
 client.commands = new Discord.Collection();
-const commandFiles = fs.readdirSync('./commands/').filter(file => file.endsWith('.js'));
+
+const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('.js'));
+
 for (const file of commandFiles) {
-    command = require(`./commands/${file}`);
-    client.commands.set(command.name, command);
+	const command = require(`./commands/${file}`);
+	client.commands.set(command.name, command);
 }
 client.once('ready', () => {
     console.log('Oof Dabber just slid into the server');
 });
 
-const login = ['']
-const player = {
-    balance: 0,
-    bank: 0,
-    bankspace: 100,
-    commandNum: 0
-}
+const login = [];
 
 //---------Redirect to files-----------
 client.on ('message', message =>{
@@ -30,17 +24,20 @@ client.on ('message', message =>{
         return;
     }
 
-    const args = message.content.slice(prefix.length).trim().split(' ');
+    const args = message.content.slice(prefix.length).trim().split(/ +/);
     const command = args.shift().toLowerCase();
 
-    if (command === 'login') {
-        login.push(message.author);
-        message.channel.send('You have successfully logged in. :D');
-    } else if (!login.includes(message.author)) {
-        client.commands.get('login').execute(message, args);
-    } else if (command === 'ping') {
-        client.commands.get('ping').execute(message, args);
-    } 
+    if (command === 'login') return client.commands.get('login').execute(message, args);
+    
+    if (!data[message.author.id]) {
+        message.reply('You need to make an account using `plz login`');
+    } else {
+        try {
+            client.commands.get(command).execute(message, args);
+        } catch (err) {
+            if (err) message.reply('That was not a vaild command! please type `plz help` for help.');
+        }
+    }
 });
 
 client.login(token);
