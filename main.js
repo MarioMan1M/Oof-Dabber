@@ -4,6 +4,7 @@ const { prefix, token } = require('./config.json');
 const data = require('./player.json');
 
 const client = new Discord.Client();
+const cooldowns = new Discord.Collection();
 client.commands = new Discord.Collection();
 
 const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('.js'));
@@ -28,7 +29,6 @@ client.on ('message', message =>{
     const command = args.shift().toLowerCase();
 
     if (command === 'login') return client.commands.get('login').execute(message, args);
-    
     if (!data[message.author.id]) {
         message.reply('You need to make an account using `plz login`');
     } else {
